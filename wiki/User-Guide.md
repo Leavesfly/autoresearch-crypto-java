@@ -52,17 +52,17 @@ autoresearch-crypto-java/
 ```bash
 # 下载 ETH 5分钟数据（60天）
 java -cp target/autoresearch-crypto-1.0.0-SNAPSHOT.jar \
-    com.autoresearch.crypto.data.DataDownloader \
+    data.io.leavesfly.autoresearch.crypto.DataDownloader \
     --symbol ETHUSDT --interval 5m --days 60
 
 # 下载 BTC 1小时数据（30天）
 java -cp target/autoresearch-crypto-1.0.0-SNAPSHOT.jar \
-    com.autoresearch.crypto.data.DataDownloader \
+    data.io.leavesfly.autoresearch.crypto.DataDownloader \
     --symbol BTCUSDT --interval 1h --days 30
 
 # 强制重新下载（覆盖已有文件）
 java -cp target/autoresearch-crypto-1.0.0-SNAPSHOT.jar \
-    com.autoresearch.crypto.data.DataDownloader \
+    data.io.leavesfly.autoresearch.crypto.DataDownloader \
     --symbol ETHUSDT --interval 5m --days 60 --force
 ```
 
@@ -189,40 +189,34 @@ java -jar target/autoresearch-crypto-1.0.0-SNAPSHOT.jar \
 ### 4.1 编程方式调用
 
 ```java
-import com.autoresearch.crypto.search.StrategySearchEngine;
-import com.autoresearch.crypto.search.StrategySearchEngine.SearchResult;
-import com.autoresearch.crypto.strategy.impl.TrendStrategy;
-import com.autoresearch.crypto.data.MarketDataLoader;
-import com.autoresearch.crypto.data.MarketData;
-import java.util.Map;
-import java.util.HashMap;
+
 
 // 加载数据
-MarketData data = MarketDataLoader.loadDefault("ETHUSDT", "5m");
+MarketData data=MarketDataLoader.loadDefault("ETHUSDT","5m");
 
 // 创建搜索引擎（600 秒时间预算）
-StrategySearchEngine searchEngine = new StrategySearchEngine(600);
+        StrategySearchEngine searchEngine=new StrategySearchEngine(600);
 
 // 定义参数搜索空间：key -> [min, max]
-Map<String, double[]> paramSpace = new HashMap<>();
-paramSpace.put("window", new double[]{10, 50});         // 布林带周期
-paramSpace.put("stdDev", new double[]{1.0, 3.0});       // 布林带倍数
-paramSpace.put("atrMultiplier", new double[]{1.5, 4.0}); // ATR 止损倍数
-paramSpace.put("maxHoldBars", new double[]{12, 96});     // 最大持仓
+        Map<String, double[]>paramSpace=new HashMap<>();
+        paramSpace.put("window",new double[]{10,50});         // 布林带周期
+        paramSpace.put("stdDev",new double[]{1.0,3.0});       // 布林带倍数
+        paramSpace.put("atrMultiplier",new double[]{1.5,4.0}); // ATR 止损倍数
+        paramSpace.put("maxHoldBars",new double[]{12,96});     // 最大持仓
 
 // 执行随机搜索
-SearchResult result = searchEngine.randomSearch(
-    params -> new TrendStrategy(new HashMap<>(params)),  // 策略工厂
-    paramSpace,
-    data,
-    true,   // 允许做空
-    1000    // 最大试验次数
-);
+        SearchResult result=searchEngine.randomSearch(
+        params->new TrendStrategy(new HashMap<>(params)),  // 策略工厂
+        paramSpace,
+        data,
+        true,   // 允许做空
+        1000    // 最大试验次数
+        );
 
-System.out.println("最优参数: " + result.bestParams());
-System.out.println("最优得分: " + result.bestScore());
-System.out.println("总收益: " + result.totalReturn() * 100 + "%");
-System.out.println("夏普比率: " + result.sharpeRatio());
+        System.out.println("最优参数: "+result.bestParams());
+        System.out.println("最优得分: "+result.bestScore());
+        System.out.println("总收益: "+result.totalReturn()*100+"%");
+        System.out.println("夏普比率: "+result.sharpeRatio());
 ```
 
 ### 4.2 参数空间格式
@@ -285,32 +279,29 @@ for (SearchResult r : results) {
 ### 5.2 Nado DEX 实盘
 
 ```java
-import com.autoresearch.crypto.backtest.BacktestEngine;
-import com.autoresearch.crypto.live.LiveTradingEngine;
-import com.autoresearch.crypto.live.NadoConnector;
-import com.autoresearch.crypto.strategy.BaseStrategy;
+
 
 // 创建策略
-BaseStrategy strategy = BacktestEngine.createStrategy("hybridmm");
+BaseStrategy strategy=BacktestEngine.createStrategy("hybridmm");
 
 // 创建 Nado DEX 连接器
-NadoConnector connector = new NadoConnector(
-    "https://api.nado.xyz",   // API 基础 URL
-    "your-api-key",            // API Key
-    "your-api-secret",         // API Secret
-    "ETH-PERP"                 // 永续合约标识
-);
+        NadoConnector connector=new NadoConnector(
+        "https://api.nado.xyz",   // API 基础 URL
+        "your-api-key",            // API Key
+        "your-api-secret",         // API Secret
+        "ETH-PERP"                 // 永续合约标识
+        );
 
 // 启动实盘引擎
-LiveTradingEngine engine = new LiveTradingEngine(
-    strategy,
-    connector,
-    100.0,     // 可用资金（USDT）
-    "5m",      // K 线周期
-    true       // 允许做空
-);
+        LiveTradingEngine engine=new LiveTradingEngine(
+        strategy,
+        connector,
+        100.0,     // 可用资金（USDT）
+        "5m",      // K 线周期
+        true       // 允许做空
+        );
 
-engine.start();  // 启动交易循环（阻塞主线程）
+        engine.start();  // 启动交易循环（阻塞主线程）
 ```
 
 Nado DEX 的下单策略：
@@ -320,19 +311,19 @@ Nado DEX 的下单策略：
 ### 5.3 OKX 实盘
 
 ```java
-import com.autoresearch.crypto.live.OkxConnector;
 
-OkxConnector connector = new OkxConnector(
-    "your-api-key",
-    "your-api-secret",
-    "your-passphrase",  // OKX 特有的 passphrase
-    "ETH-USDT-SWAP"     // 永续合约 ID
-);
 
-LiveTradingEngine engine = new LiveTradingEngine(
-    strategy, connector, 100.0, "5m", true
-);
-engine.start();
+OkxConnector connector=new OkxConnector(
+        "your-api-key",
+        "your-api-secret",
+        "your-passphrase",  // OKX 特有的 passphrase
+        "ETH-USDT-SWAP"     // 永续合约 ID
+        );
+
+        LiveTradingEngine engine=new LiveTradingEngine(
+        strategy,connector,100.0,"5m",true
+        );
+        engine.start();
 ```
 
 ### 5.4 实盘运行机制
@@ -392,26 +383,24 @@ engine.start();
 适用于希望自动优化多种策略并发现最优组合的场景。
 
 ```java
-import com.autoresearch.crypto.evolution.AtlasEvolutionEngine;
-import com.autoresearch.crypto.evolution.Agent;
-import com.autoresearch.crypto.strategy.StrategyEvaluator;
+
 
 // 创建默认 4 个代理（Alpha/Beta/Gamma/Delta）
-List<Agent> agents = AtlasEvolutionEngine.createDefaultAgents();
-StrategyEvaluator evaluator = new StrategyEvaluator();
+List<Agent> agents=AtlasEvolutionEngine.createDefaultAgents();
+        StrategyEvaluator evaluator=new StrategyEvaluator();
 
-AtlasEvolutionEngine atlas = new AtlasEvolutionEngine(agents, evaluator);
+        AtlasEvolutionEngine atlas=new AtlasEvolutionEngine(agents,evaluator);
 
 // 执行多轮进化
-for (int round = 0; round < 50; round++) {
-    atlas.evolve(data);
+        for(int round=0;round< 50;round++){
+        atlas.evolve(data);
 
-    // 检查并处理停滞代理
-    List<String> deadAgents = atlas.checkDeadAgents();
-    if (!deadAgents.isEmpty()) {
-        System.out.println("停滞代理: " + deadAgents);
-    }
-}
+        // 检查并处理停滞代理
+        List<String> deadAgents=atlas.checkDeadAgents();
+        if(!deadAgents.isEmpty()){
+        System.out.println("停滞代理: "+deadAgents);
+        }
+        }
 ```
 
 ### 6.2 GEPA 反思
@@ -419,26 +408,26 @@ for (int round = 0; round < 50; round++) {
 适用于希望深入分析策略为何表现好/差，并获得智能调参建议的场景。
 
 ```java
-import com.autoresearch.crypto.evolution.GepaReflectionEngine;
 
-GepaReflectionEngine gepa = new GepaReflectionEngine(agents);
 
-for (Agent agent : agents) {
-    // 生成假设（调参建议）
-    var hypothesis = gepa.generateHypothesis(agent);
-    System.out.println("建议: " + hypothesis.text());
-    System.out.println("理由: " + hypothesis.rationale());
-    System.out.println("参数调整: " + hypothesis.paramChanges());
+GepaReflectionEngine gepa=new GepaReflectionEngine(agents);
 
-    // 执行实验后记录结果...
-    // gepa.recordExperiment(log);
-}
+        for(Agent agent:agents){
+        // 生成假设（调参建议）
+        var hypothesis=gepa.generateHypothesis(agent);
+        System.out.println("建议: "+hypothesis.text());
+        System.out.println("理由: "+hypothesis.rationale());
+        System.out.println("参数调整: "+hypothesis.paramChanges());
+
+        // 执行实验后记录结果...
+        // gepa.recordExperiment(log);
+        }
 
 // 每 5 次实验执行一次元反思
-if (gepa.shouldReflect()) {
-    String insight = gepa.metaReflect();
-    System.out.println("元反思洞察: " + insight);
-}
+        if(gepa.shouldReflect()){
+        String insight=gepa.metaReflect();
+        System.out.println("元反思洞察: "+insight);
+        }
 ```
 
 ---
@@ -448,83 +437,81 @@ if (gepa.shouldReflect()) {
 ### 7.1 加载数据并验证
 
 ```java
-import com.autoresearch.crypto.data.*;
+
 
 // 从 CSV 文件加载
-MarketData data = MarketDataLoader.loadCsv(Path.of("data/crypto/ETHUSDT_5m_60d.csv"));
+MarketData data=MarketDataLoader.loadCsv(Path.of("data/crypto/ETHUSDT_5m_60d.csv"));
 
 // 或通过默认路径加载（自动拼接路径）
-MarketData data = MarketDataLoader.loadDefault("ETHUSDT", "5m");
+        MarketData data=MarketDataLoader.loadDefault("ETHUSDT","5m");
 
 // 验证数据质量
-DataManager.ValidationResult validation = DataManager.validate(data);
-validation.logResults();  // 输出错误/警告到日志
-if (!validation.valid()) {
-    System.err.println("数据验证失败: " + validation.errors());
-}
+        DataManager.ValidationResult validation=DataManager.validate(data);
+        validation.logResults();  // 输出错误/警告到日志
+        if(!validation.valid()){
+        System.err.println("数据验证失败: "+validation.errors());
+        }
 ```
 
 ### 7.2 Walk-Forward 验证
 
 ```java
-import com.autoresearch.crypto.data.DataManager;
+
 
 // 将数据分割为 3 个窗口（每个窗口 70% 训练 + 30% 验证）
-List<DataManager.WalkForwardWindow> windows = DataManager.walkForwardSplit(data, 3);
+List<DataManager.WalkForwardWindow>windows=DataManager.walkForwardSplit(data,3);
 
-for (DataManager.WalkForwardWindow window : windows) {
-    // 在训练集上搜索最优参数
-    SearchResult result = searchEngine.randomSearch(
-        factory, paramSpace, window.train(), true, 200
-    );
+        for(DataManager.WalkForwardWindow window:windows){
+        // 在训练集上搜索最优参数
+        SearchResult result=searchEngine.randomSearch(
+        factory,paramSpace,window.train(),true,200
+        );
 
-    // 在验证集上检验
-    BaseStrategy strategy = factory.create(result.bestParams());
-    int[] signals = strategy.generateSignals(window.validation(), true);
-    EvaluationResult eval = evaluator.evaluate(signals, window.validation().close());
+        // 在验证集上检验
+        BaseStrategy strategy=factory.create(result.bestParams());
+        int[]signals=strategy.generateSignals(window.validation(),true);
+        EvaluationResult eval=evaluator.evaluate(signals,window.validation().close());
 
-    System.out.printf("窗口 %d: 训练得分=%.4f, 验证得分=%.4f%n",
-        window.index(), result.bestScore(), eval.score());
-}
+        System.out.printf("窗口 %d: 训练得分=%.4f, 验证得分=%.4f%n",
+        window.index(),result.bestScore(),eval.score());
+        }
 ```
 
 ### 7.3 自定义策略参数
 
 ```java
-import com.autoresearch.crypto.strategy.impl.HybridMeanRevMomentumStrategy;
-import java.util.HashMap;
-import java.util.Map;
 
-Map<String, Object> params = new HashMap<>();
-params.put("rsiPeriod", 7);
-params.put("rsiLow", 22);
-params.put("rsiHigh", 78);
-params.put("maPeriod", 15);
-params.put("atrMultiplier", 2.5);
-params.put("maxHoldBars", 36);
-params.put("takeProfitPct", 0.04);
-params.put("stopLossPct", 0.015);
 
-HybridMeanRevMomentumStrategy strategy = new HybridMeanRevMomentumStrategy(params);
+Map<String, Object> params=new HashMap<>();
+        params.put("rsiPeriod",7);
+        params.put("rsiLow",22);
+        params.put("rsiHigh",78);
+        params.put("maPeriod",15);
+        params.put("atrMultiplier",2.5);
+        params.put("maxHoldBars",36);
+        params.put("takeProfitPct",0.04);
+        params.put("stopLossPct",0.015);
+
+        HybridMeanRevMomentumStrategy strategy=new HybridMeanRevMomentumStrategy(params);
 ```
 
 ### 7.4 分析市场状态
 
 ```java
-import com.autoresearch.crypto.regime.*;
+
 
 // 基于本地 K 线分析（回测/实盘通用）
-RegimeInfo regime = MarketRegimeDetector.analyze(data);
-System.out.println("市场机制: " + regime.regime().label());
-System.out.println("ADX: " + regime.adx());
-System.out.println("波动率: " + regime.volatilityAnnualized());
+RegimeInfo regime=MarketRegimeDetector.analyze(data);
+        System.out.println("市场机制: "+regime.regime().label());
+        System.out.println("ADX: "+regime.adx());
+        System.out.println("波动率: "+regime.volatilityAnnualized());
 
 // 基于多源网络数据分析（仅实盘使用）
-MultiSourceRegimeDetector detector = new MultiSourceRegimeDetector();
-RegimeReport report = detector.analyze();
-boolean[] filter = detector.directionFilter();
-System.out.println("允许做多: " + filter[0]);
-System.out.println("允许做空: " + filter[1]);
+        MultiSourceRegimeDetector detector=new MultiSourceRegimeDetector();
+        RegimeReport report=detector.analyze();
+        boolean[]filter=detector.directionFilter();
+        System.out.println("允许做多: "+filter[0]);
+        System.out.println("允许做空: "+filter[1]);
 ```
 
 ---

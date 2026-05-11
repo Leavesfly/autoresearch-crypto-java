@@ -81,63 +81,55 @@ downloader.download("ETHUSDT", "5m", 60, false); // 下载60天的5分钟K线，
 ### 运行单策略回测
 
 ```java
-import com.autoresearch.crypto.backtest.BacktestEngine;
-import com.autoresearch.crypto.backtest.BacktestResult;
-import com.autoresearch.crypto.data.MarketDataLoader;
-import com.autoresearch.crypto.data.MarketData;
-import com.autoresearch.crypto.strategy.BaseStrategy;
-import java.nio.file.Path;
+
 
 // 从 CSV 文件加载数据
-MarketData data = MarketDataLoader.loadCsv(Path.of("data/crypto/ETHUSDT_5m_60d.csv"));
+MarketData data=MarketDataLoader.loadCsv(Path.of("data/crypto/ETHUSDT_5m_60d.csv"));
 
 // 或通过默认路径加载（自动拼接 data/crypto/{symbol}_{interval}.csv）
 // MarketData data = MarketDataLoader.loadDefault("ETHUSDT", "5m");
 
 // 创建策略
-BaseStrategy strategy = BacktestEngine.createStrategy("hybridmm");
+        BaseStrategy strategy=BacktestEngine.createStrategy("hybridmm");
 
 // 运行回测
-BacktestEngine engine = new BacktestEngine();
-BacktestResult result = engine.run(strategy, data, true);
+        BacktestEngine engine=new BacktestEngine();
+        BacktestResult result=engine.run(strategy,data,true);
 
-System.out.println("综合评分: " + result.compositeScore());
-System.out.println("交易次数: " + result.tradeCount());
+        System.out.println("综合评分: "+result.compositeScore());
+        System.out.println("交易次数: "+result.tradeCount());
 ```
 
 ### 自定义策略参数
 
 ```java
-import com.autoresearch.crypto.strategy.impl.TrendStrategy;
-import java.util.Map;
 
-TrendStrategy strategy = new TrendStrategy();
-strategy.setParams(Map.of(
-    "window", 25,
-    "stdDev", 1.8,
-    "atrMultiplier", 3.0,
-    "maxHoldBars", 36
-));
+
+TrendStrategy strategy=new TrendStrategy();
+        strategy.setParams(Map.of(
+        "window",25,
+        "stdDev",1.8,
+        "atrMultiplier",3.0,
+        "maxHoldBars",36
+        ));
 ```
 
 ### 策略搜索
 
 ```java
-import com.autoresearch.crypto.search.StrategySearchEngine;
-import com.autoresearch.crypto.strategy.impl.TrendStrategy;
-import java.util.HashMap;
 
-StrategySearchEngine searchEngine = new StrategySearchEngine(600); // 600秒预算
 
-Map<String, double[]> paramSpace = new HashMap<>();
-paramSpace.put("window", new double[]{10, 50});
-paramSpace.put("stdDev", new double[]{1.0, 3.0});
-paramSpace.put("atrMultiplier", new double[]{1.5, 4.0});
+StrategySearchEngine searchEngine=new StrategySearchEngine(600); // 600秒预算
 
-SearchResult result = searchEngine.randomSearch(
-    params -> new TrendStrategy(new HashMap<>(params)),
-    paramSpace, data, true, 1000
-);
+        Map<String, double[]>paramSpace=new HashMap<>();
+        paramSpace.put("window",new double[]{10,50});
+        paramSpace.put("stdDev",new double[]{1.0,3.0});
+        paramSpace.put("atrMultiplier",new double[]{1.5,4.0});
+
+        SearchResult result=searchEngine.randomSearch(
+        params->new TrendStrategy(new HashMap<>(params)),
+        paramSpace,data,true,1000
+        );
 ```
 
 ## 输出示例
