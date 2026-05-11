@@ -115,7 +115,7 @@ autoresearch-crypto-java/
 
 ```bash
 # 克隆项目
-git clone <repo-url>
+git clone git@github.com:leavesfly/autoresearch-crypto-java.git
 cd autoresearch-crypto-java
 
 # 编译
@@ -320,12 +320,21 @@ System.out.println("交易次数: " + result.tradeCount());
 ### 自定义策略参数
 
 ```java
-TrendStrategy strategy = new TrendStrategy();
-strategy.setParams(Map.of(
+// 通过构造函数传入自定义参数
+Map<String, Object> params = new HashMap<>(Map.of(
     "window", 25,
     "stdDev", 1.8,
     "atrMultiplier", 3.0,
     "maxHoldBars", 36
+));
+TrendStrategy strategy = new TrendStrategy(params);
+
+// 也可以在创建后动态修改参数
+strategy.setParams(Map.of(
+    "window", 30,
+    "stdDev", 2.0,
+    "atrMultiplier", 2.5,
+    "maxHoldBars", 48
 ));
 ```
 
@@ -339,10 +348,14 @@ paramSpace.put("window", new double[]{10, 50});
 paramSpace.put("stdDev", new double[]{1.0, 3.0});
 paramSpace.put("atrMultiplier", new double[]{1.5, 4.0});
 
-SearchResult result = searchEngine.randomSearch(
+StrategySearchEngine.SearchResult result = searchEngine.randomSearch(
     params -> new TrendStrategy(new HashMap<>(params)),
     paramSpace, data, true, 1000
 );
+
+System.out.println("最优参数: " + result.bestParams());
+System.out.println("最高得分: " + result.bestScore());
+System.out.println("夏普比率: " + result.sharpeRatio());
 ```
 
 ### 下载市场数据
@@ -396,13 +409,15 @@ System.out.println("ADX: " + regime.adx());
 
 ---
 
-## 🗺️ 路线图
+## 🗺️ 未来规划方向
 
-- [ ] 更多交易所连接器（Binance、Bybit）
-- [ ] Web Dashboard 可视化回测结果
-- [ ] 分布式策略搜索
-- [ ] 机器学习特征工程
-- [ ] 多币种组合策略
+本框架设计具备良好的扩展性，以下为潜在的扩展方向：
+
+- **更多交易所连接器** — Binance、Bybit 等主流交易所集成
+- **Web Dashboard** — 可视化回测结果与策略表现对比
+- **分布式策略搜索** — 多节点并行参数寻优加速
+- **机器学习特征工程** — 将技术指标作为 ML 模型输入特征
+- **多币种组合策略** — 跨币种相关性分析与组合风险管理
 
 ---
 
@@ -417,6 +432,6 @@ System.out.println("ADX: " + regime.adx());
 
 ---
 
-## 📄 许可证
+## 📄 使用声明
 
-本项目仅供学术研究与个人学习使用。
+本项目为开源研究项目，仅供学术研究、技术学习与个人实验用途。未经授权不得用于商业目的。
